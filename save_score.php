@@ -1,25 +1,29 @@
 <?php
 
-$conn = new mysqli("localhost", "root", "", "buscaminas_db");
+$dbHost = "db.unxarpvzdpgdueyhfzwm.supabase.co";
+$dbPort = "5432";
+$dbName = "postgres";
+$dbUser = "postgres";
+$dbPass = "ZDqreY6uQMelMrx9";
 
-if ($conn->connect_error) {
-    die("Error de conexión");
+$dsn = "pgsql:host={$dbHost};port={$dbPort};dbname={$dbName}";
+try {
+    $conn = new PDO($dsn, $dbUser, $dbPass, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
+} catch (PDOException $e) {
+    die("Error de conexión: " . $e->getMessage());
 }
 
 $username = $_POST['username'];
 $score = $_POST['score'];
 
-$stmt = $conn->prepare("SELECT ID FROM `user` WHERE name = ?");
-$stmt->bind_param("s", $username);
-$stmt->execute();
+$stmt = $conn->prepare("SELECT id FROM users WHERE name = ?");
+$stmt->execute([$username]);
+$row = $stmt->fetch(PDO::FETCH_ASSOC);
 
-$result = $stmt->get_result();
-
-$id_user = $result->fetch_assoc()['ID'];
+$id_user = $row['id'];
 
 $stmt = $conn->prepare("INSERT INTO score (user_id, score, date) VALUES (?, ?, ?)");
-$stmt->bind_param("sis", $id_user, $score, date('Y-m-d'));
-$stmt->execute();
+$stmt->execute([$id_user, $score, date('Y-m-d')]);
 
 header('Content-Type: application/json');
 echo json_encode([
@@ -27,5 +31,5 @@ echo json_encode([
     'mensaje' => 'Score guardado correctamente 🏆'
 ]);
 
-$conn->close();
+$conn = null;
 ?>

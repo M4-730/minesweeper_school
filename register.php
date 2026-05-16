@@ -1,13 +1,15 @@
 <?php
-$host = "localhost";
-$user = "root";
-$pass = "";
-$db   = "buscaminas_db";
+$dbHost = "db.unxarpvzdpgdueyhfzwm.supabase.co";
+$dbPort = "5432";
+$dbName = "postgres";
+$dbUser = "postgres";
+$dbPass = "ZDqreY6uQMelMrx9";
 
-$conn = new mysqli($host, $user, $pass, $db);
-
-if ($conn->connect_error) {
-    die("Error de conexión");
+$dsn = "pgsql:host={$dbHost};port={$dbPort};dbname={$dbName}";
+try {
+    $conn = new PDO($dsn, $dbUser, $dbPass, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
+} catch (PDOException $e) {
+    die("Error de conexión: " . $e->getMessage());
 }
 
 $usuario   = $_POST['usuario'];
@@ -20,29 +22,25 @@ if ($password !== $password2) {
 }
 
 // Verificar que el usuario no exista ya
-$sql = "SELECT id FROM user WHERE name = ?";
+$sql = "SELECT id FROM users WHERE name = ?";
 $stmt = $conn->prepare($sql);
-$stmt->bind_param("s", $usuario);
-$stmt->execute();
-$result = $stmt->get_result();
+$stmt->execute([$usuario]);
+$existing = $stmt->fetch(PDO::FETCH_ASSOC);
 
-if ($result->num_rows > 0) {
+if ($existing) {
     die("Ese usuario ya existe. <a href='registration.html'>Volver</a>");
 }
 
-$stmt->close();
-
 // Insertar el nuevo usuario
-$sql = "INSERT INTO user (name, pass) VALUES (?, ?)";
+$sql = "INSERT INTO users (name, pass) VALUES (?, ?)";
 $stmt = $conn->prepare($sql);
-$stmt->bind_param("ss", $usuario, $password);
 
-if ($stmt->execute()) {
+if ($stmt->execute([$usuario, $password])) {
     header("Location: login.html?registered=1");
     exit();
 } else {
     echo "Error al registrar. <a href='registration.html'>Volver</a>";
 }
 
-$conn->close();
+$conn = null;
 ?>

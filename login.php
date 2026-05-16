@@ -1,33 +1,32 @@
 <?php
 session_start();
 
-$host = "localhost";
-$user = "root";
-$pass = "";
-$db   = "buscaminas_db";
+$dbHost = "db.unxarpvzdpgdueyhfzwm.supabase.co";
+$dbPort = "5432";
+$dbName = "postgres";
+$dbUser = "postgres";
+$dbPass = "ZDqreY6uQMelMrx9";
 
-$conn = new mysqli($host, $user, $pass, $db);
-
-if ($conn->connect_error) {
-    die("Error de conexión");
+$dsn = "pgsql:host={$dbHost};port={$dbPort};dbname={$dbName}";
+try {
+    $conn = new PDO($dsn, $dbUser, $dbPass, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
+} catch (PDOException $e) {
+    die("Error de conexión: " . $e->getMessage());
 }
 
 $usuario  = $_POST['usuario'];
 $password = $_POST['password'];
 
-$sql = "SELECT id, PASS FROM user WHERE name = ?";
+$sql = "SELECT id, pass FROM users WHERE name = ?";
 $stmt = $conn->prepare($sql);
-$stmt->bind_param("s", $usuario);
-$stmt->execute();
-$result = $stmt->get_result();
+$stmt->execute([$usuario]);
+$row = $stmt->fetch(PDO::FETCH_ASSOC);
 
-if ($result->num_rows === 1) {
-    $row = $result->fetch_assoc();
-
-    if ($password === $row['PASS']) {
+if ($row) {
+    if ($password === $row['pass']) {
         $_SESSION['usuario'] = $usuario;
         $_SESSION['activa']  = true;
-		$_SESSION['user_id'] = $row['id'];
+        $_SESSION['user_id'] = $row['id'];
         header("Location: index.php");
         exit();
     } else {
@@ -39,5 +38,5 @@ if ($result->num_rows === 1) {
     exit();
 }
 
-$conn->close();
+$conn = null;
 ?>
