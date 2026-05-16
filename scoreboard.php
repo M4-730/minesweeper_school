@@ -85,13 +85,13 @@ $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 <th>Fecha</th>
             </tr>
 
-            <?php while($row = $result->fetch_assoc()): ?>
+            <?php foreach ($result as $row): ?>
             <tr>
-                <td><?= $row['username'] ?></td>
-                <td><?= $row['score'] ?></td>
-                <td><?= $row['created_at'] ?></td>
+                <td><?= htmlspecialchars($row['username']) ?></td>
+                <td><?= htmlspecialchars((string)$row['score']) ?></td>
+                <td><?= htmlspecialchars($row['created_at']) ?></td>
             </tr>
-            <?php endwhile; ?>
+            <?php endforeach; ?>
 
         </table>
 
