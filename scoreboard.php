@@ -1,24 +1,24 @@
 <?php
-$dbHost = "db.unxarpvzdpgdueyhfzwm.supabase.co";
-$dbPort = "5432";
-$dbName = "postgres";
-$dbUser = "postgres";
-$dbPass = "ZDqreY6uQMelMrx9";
+$host = "localhost";
+$user = "root";
+$pass = "";
+$db   = "buscaminas_db";
 
-$dsn = "pgsql:host={$dbHost};port={$dbPort};dbname={$dbName}";
-try {
-    $conn = new PDO($dsn, $dbUser, $dbPass, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
-} catch (PDOException $e) {
-    die("Error de conexión: " . $e->getMessage());
-}
+$conn = mysql_connect($host, $user, $pass) or die("Error de conexión: " . mysql_error());
+mysql_select_db($db, $conn) or die("Error al seleccionar la base de datos: " . mysql_error());
+mysql_set_charset('utf8mb4', $conn);
 
 $sql = "SELECT users.name AS username, score.score, score.date AS created_at
                         FROM score 
                         INNER JOIN users ON score.user_id = users.id
                         ORDER BY score.score DESC 
                         LIMIT 10";
-$stmt = $conn->query($sql);
-$result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+$result = mysql_query($sql, $conn) or die("Error en consulta: " . mysql_error());
+$rows = [];
+while ($row = mysql_fetch_assoc($result)) {
+    $rows[] = $row;
+}
+mysql_close($conn);
 ?>
 
 <!DOCTYPE html>
@@ -85,7 +85,7 @@ $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 <th>Fecha</th>
             </tr>
 
-            <?php foreach ($result as $row): ?>
+            <?php foreach ($rows as $row): ?>
             <tr>
                 <td><?= htmlspecialchars($row['username']) ?></td>
                 <td><?= htmlspecialchars((string)$row['score']) ?></td>

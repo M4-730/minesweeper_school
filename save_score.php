@@ -1,29 +1,26 @@
 <?php
 
-$dbHost = "db.unxarpvzdpgdueyhfzwm.supabase.co";
-$dbPort = "5432";
-$dbName = "postgres";
-$dbUser = "postgres";
-$dbPass = "ZDqreY6uQMelMrx9";
+$host = "localhost";
+$user = "root";
+$pass = "";
+$db   = "buscaminas_db";
 
-$dsn = "pgsql:host={$dbHost};port={$dbPort};dbname={$dbName}";
-try {
-    $conn = new PDO($dsn, $dbUser, $dbPass, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
-} catch (PDOException $e) {
-    die("Error de conexión: " . $e->getMessage());
-}
+$conn = mysql_connect($host, $user, $pass) or die("Error de conexión: " . mysql_error());
+mysql_select_db($db, $conn) or die("Error al seleccionar la base de datos: " . mysql_error());
+mysql_set_charset('utf8mb4', $conn);
 
-$username = $_POST['username'];
-$score = $_POST['score'];
+$username = mysql_real_escape_string($_POST['username'], $conn);
+$score = (int)$_POST['score'];
 
-$stmt = $conn->prepare("SELECT id FROM users WHERE name = ?");
-$stmt->execute([$username]);
-$row = $stmt->fetch(PDO::FETCH_ASSOC);
+$sql = "SELECT id FROM users WHERE name = '$username'";
+$result = mysql_query($sql, $conn) or die("Error en consulta: " . mysql_error());
+$row = mysql_fetch_assoc($result);
 
 $id_user = $row['id'];
 
-$stmt = $conn->prepare("INSERT INTO score (user_id, score, date) VALUES (?, ?, ?)");
-$stmt->execute([$id_user, $score, date('Y-m-d')]);
+$fecha = date('Y-m-d');
+$sql = "INSERT INTO score (user_id, score, date) VALUES ($id_user, $score, '$fecha')";
+mysql_query($sql, $conn) or die("Error al guardar score: " . mysql_error());
 
 header('Content-Type: application/json');
 echo json_encode([
@@ -31,5 +28,5 @@ echo json_encode([
     'mensaje' => 'Score guardado correctamente 🏆'
 ]);
 
-$conn = null;
+mysql_close($conn);
 ?>
